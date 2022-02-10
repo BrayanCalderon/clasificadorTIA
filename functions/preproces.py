@@ -102,6 +102,53 @@ def colorear(rect,img):
     box = np.int0(box)
     cv2.drawContours(img,[box],0,(255,0,0),2)
     return img
+def recortes(img,rects):
+    
+    for i in range(11,40):
+        src = cv2.imread(path+"S2-"+str(i)+".png")
+        src_color = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+        color_copy = src_color.copy()
+        img, rects = contornos(src_color)
+        crop_images = []
+        
+        
+        for i,label in enumerate(labels_img):
+            if int(label) >= 1 and int(label) < 6:
+                labels_general.append(int(label))
+                rect = rects[i]
+                angle = rect[2]
+                
+                rows,cols = color_copy.shape[0], color_copy.shape[1]
+                M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
+                img_rot = cv2.warpAffine(color_copy,M,(cols,rows))
+                    # Rota los bounding boxes
+                rect0 = (rect[0], rect[1], 0.0)
+                box = cv2.boxPoints(rect)
+                pts = np.int0(cv2.transform(np.array([box]), M))[0]    
+                pts[pts < 0] = 0
+
+                # Realiza el recorte a los contornos
+                img_crop = img_rot[pts[1][1]:pts[0][1], 
+                            pts[1][0]:pts[2][0]]
+                crop_images.append(img_crop)
+                
+                
+            #Imagenes normalizadas
+            
+        for j,img in enumerate(crop_images):
+            #print(j)
+            blank = np.ones((100, 100,3), dtype = 'uint8')*255
+            w1 = 100
+            h1 = 100
+            w2 = len(img[1])
+            h2 = len(img)
+            x_ini = (w1-w2)//2
+            y_ini = (h1-h2)//2
+            for i in range(len(img)):
+                for j in range(len(img[1])):
+                    for k in range(3):
+                        blank[x_ini+j][y_ini+i][k] = img[i][j][k]
+            norm_images.append(blank)
 
 
 
